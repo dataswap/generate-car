@@ -2,6 +2,11 @@ package util
 
 import (
 	"context"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/ipfs/go-blockservice"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
@@ -26,10 +31,8 @@ import (
 	"github.com/ipld/go-ipld-prime/traversal/selector"
 	"github.com/ipld/go-ipld-prime/traversal/selector/builder"
 	"golang.org/x/xerrors"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
+
+	metaservice "github.com/dataswap/go-metadata/service"
 )
 
 const UnixfsLinksPerLevel = 1 << 10
@@ -127,6 +130,7 @@ func (fs *fileSlice) Read(p []byte) (n int, err error) {
 }
 
 func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDir string, output io.Writer) (ipldDag *FsNode, cid string, cidMap map[string]CidMapValue, err error) {
+	msrv := metaservice.New()
 	batching := dss.MutexWrap(datastore.NewMapDatastore())
 	bs1 := bstore.NewBlockstore(batching)
 	absParentPath, err := filepath.Abs(parentPath)
@@ -146,7 +150,8 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 	fm.AllowFiles = true
 	bs2 := filestore.NewFilestore(bs1, fm)
 
-	dagServ := merkledag.NewDAGService(blockservice.New(bs2, offline.Exchange(bs2)))
+	dagServ1 := merkledag.NewDAGService(blockservice.New(bs2, offline.Exchange(bs2)))
+	dagServ := msrv.GenDagService(dagServ1)
 	cidBuilder, err := merkledag.PrefixForCidVersion(1)
 	if err != nil {
 		logger.Warn(err)
@@ -199,7 +204,7 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 			item.End = item.Size
 			item.Start = 0
 		}
-		node, err = BuildFileNode(ctx, item, dagServ, cidBuilder)
+		node, err = BuildFileNode(ctx, item, dagServ, cidBuilder, msrv)
 		if err != nil {
 			return
 		}
@@ -309,7 +314,9 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 	cidMap[""] = CidMapValue{true, rootIpldNode.Cid().String()}
 	selector := allSelector()
 	sc := car.NewSelectiveCar(ctx, bs2, []car.Dag{{Root: rootIpldNode.Cid(), Selector: selector}})
-	err = sc.Write(output)
+	err = sc.Write(
+		msrv.GenCarWriter(output, "", true),
+	)
 	if err != nil {
 		return
 	}
@@ -324,6 +331,8 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 		return
 	}
 	cid = rootIpldNode.Cid().String()
+	msrv.SetCarRoot(rootIpldNode.Cid())
+	msrv.PrintJson(parentPath + "/meta")
 	return
 }
 
@@ -333,7 +342,7 @@ func allSelector() ipldprime.Node {
 		ssb.ExploreAll(ssb.ExploreRecursiveEdge())).
 		Node()
 }
-func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBuilder cid.Builder) (node ipld.Node, err error) {
+func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBuilder cid.Builder, msrv *metaservice.MetaService) (node ipld.Node, err error) {
 	f, err := os.Open(item.Path)
 	if err != nil {
 		logger.Warn(err)
@@ -362,7 +371,9 @@ func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBu
 		Dagserv:    bufDs,
 		NoCopy:     true,
 	}
-	db, err := params.New(chunker.NewSizeSplitter(r, int64(UnixfsChunkSize)))
+	spl := chunker.NewSizeSplitter(r, int64(UnixfsChunkSize))
+	spl = msrv.GenSplitter(r, item.Path, true)
+	db, err := params.New(spl)
 	db.SetOffset(uint64(item.Start))
 	if err != nil {
 		logger.Warn(err)
