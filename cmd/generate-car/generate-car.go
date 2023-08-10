@@ -13,12 +13,14 @@ import (
 	"path/filepath"
 
 	commcid "github.com/filecoin-project/go-fil-commcid"
-	"github.com/filecoin-project/go-fil-commp-hashhash"
+	commp "github.com/filecoin-project/go-fil-commp-hashhash"
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 	cbor "github.com/ipfs/go-ipld-cbor"
 	"github.com/tech-greedy/generate-car/util"
 	"github.com/urfave/cli/v2"
+
+	metaservice "github.com/dataswap/go-metadata/service"
 )
 
 type CommpResult struct {
@@ -160,7 +162,9 @@ func main() {
 			}
 			cp := new(commp.Calc)
 			writer := bufio.NewWriterSize(io.MultiWriter(carF, cp), BufSize)
-			ipld, cid, cidMap, err := util.GenerateCar(ctx, input, parent, tmpDir, writer)
+
+			msrv := metaservice.New()
+			ipld, cid, cidMap, err := util.GenerateCar(ctx, input, parent, tmpDir, writer, msrv)
 			if err != nil {
 				return err
 			}
@@ -195,6 +199,10 @@ func main() {
 			if err != nil {
 				return err
 			}
+
+			metaPath := path.Join(outDir, "metas")
+			msrv.SaveMeta(metaPath, commCid.String()+".json")
+
 			output, err := json.Marshal(Result{
 				Ipld:      ipld,
 				DataCid:   cid,

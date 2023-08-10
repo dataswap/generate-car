@@ -13,7 +13,6 @@ import (
 	dss "github.com/ipfs/go-datastore/sync"
 	"github.com/ipfs/go-filestore"
 	bstore "github.com/ipfs/go-ipfs-blockstore"
-	chunker "github.com/ipfs/go-ipfs-chunker"
 	offline "github.com/ipfs/go-ipfs-exchange-offline"
 	files "github.com/ipfs/go-ipfs-files"
 	format "github.com/ipfs/go-ipld-format"
@@ -23,6 +22,7 @@ import (
 	dag "github.com/ipfs/go-merkledag"
 	"github.com/ipfs/go-unixfs"
 	"github.com/ipfs/go-unixfs/importer/balanced"
+	"github.com/ipfs/go-unixfs/importer/helpers"
 	ihelper "github.com/ipfs/go-unixfs/importer/helpers"
 	uio "github.com/ipfs/go-unixfs/io"
 	"github.com/ipld/go-car"
@@ -32,6 +32,7 @@ import (
 	"github.com/ipld/go-ipld-prime/traversal/selector/builder"
 	"golang.org/x/xerrors"
 
+	"github.com/dataswap/go-metadata/libs"
 	metaservice "github.com/dataswap/go-metadata/service"
 )
 
@@ -129,8 +130,7 @@ func (fs *fileSlice) Read(p []byte) (n int, err error) {
 	return copy(p, b), io.EOF
 }
 
-func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDir string, output io.Writer) (ipldDag *FsNode, cid string, cidMap map[string]CidMapValue, err error) {
-	msrv := metaservice.New()
+func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDir string, output io.Writer, msrv *metaservice.MetaService) (ipldDag *FsNode, cid string, cidMap map[string]CidMapValue, err error) {
 	batching := dss.MutexWrap(datastore.NewMapDatastore())
 	bs1 := bstore.NewBlockstore(batching)
 	absParentPath, err := filepath.Abs(parentPath)
@@ -332,7 +332,6 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 	}
 	cid = rootIpldNode.Cid().String()
 	msrv.SetCarRoot(rootIpldNode.Cid())
-	msrv.PrintJson(parentPath + "/meta")
 	return
 }
 
@@ -371,9 +370,13 @@ func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBu
 		Dagserv:    bufDs,
 		NoCopy:     true,
 	}
-	spl := chunker.NewSizeSplitter(r, int64(UnixfsChunkSize))
-	spl = msrv.GenSplitter(r, item.Path, true)
-	db, err := params.New(spl)
+	var db helpers.Helper
+	spl := libs.NewSplitter(r, int64(UnixfsChunkSize), item.Path)
+	if msrv != nil {
+		db, err = msrv.GenHelper(&params, spl)
+	} else {
+		db, err = params.New(spl)
+	}
 	db.SetOffset(uint64(item.Start))
 	if err != nil {
 		logger.Warn(err)

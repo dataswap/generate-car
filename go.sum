@@ -90,10 +90,10 @@ github.com/crackcomm/go-gitignore v0.0.0-20170627025303-887ab5e44cc3/go.mod h1:p
 github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7DoTY=
 github.com/cskr/pubsub v1.0.2 h1:vlOzMhl6PFn60gRlTQQsIfVwaPB/B/8MziK8FhEPt/0=
 github.com/cskr/pubsub v1.0.2/go.mod h1:/8MzYXk/NJAz782G8RPkFzXTZVu63VotefPnR9TIRis=
-github.com/dataswap/go-metadata v0.0.0-20230809120834-9c7b6b27b730 h1:tgRR+93a7Am8rsYWdLiF9BepuQdprhDy7esdpXwnn6E=
-github.com/dataswap/go-metadata v0.0.0-20230809120834-9c7b6b27b730/go.mod h1:Fy9GToRSrUjtt+RHDTOOLY3CyAOLv6ijdvvZMGRK78E=
-github.com/dataswap/go-unixfs v0.4.7-0.20230808115924-06e59077c25f h1:vOIi88TxWKrNo35/4XJfrYrod4WahcqXymwlnlWEoIQ=
-github.com/dataswap/go-unixfs v0.4.7-0.20230808115924-06e59077c25f/go.mod h1:BIznJNvt/gEx/ooRMI4Us9K8+qeGO7vx1ohnbk8gjFg=
+github.com/dataswap/go-metadata v0.0.0-20230810072038-09315642a971 h1:e5Qm8EDMkXwD46NHfN4SZtqoLgCBTYkIe4eV/UkTrok=
+github.com/dataswap/go-metadata v0.0.0-20230810072038-09315642a971/go.mod h1:Fy9GToRSrUjtt+RHDTOOLY3CyAOLv6ijdvvZMGRK78E=
+github.com/dataswap/go-unixfs v0.4.7-0.20230810063948-3a5a3e6f56ec h1:zI2Btn0fznsI+D60lQcNfR0qNWcPE4p18KAjwHF+iBg=
+github.com/dataswap/go-unixfs v0.4.7-0.20230810063948-3a5a3e6f56ec/go.mod h1:BIznJNvt/gEx/ooRMI4Us9K8+qeGO7vx1ohnbk8gjFg=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
