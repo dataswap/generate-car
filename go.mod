@@ -3,7 +3,7 @@ module github.com/tech-greedy/generate-car
 go 1.20
 
 require (
-	github.com/dataswap/go-metadata v0.0.0-20230810072038-09315642a971
+	github.com/dataswap/go-metadata v0.0.0-20230811030753-a306a7c8371d
 	github.com/filecoin-project/go-fil-commcid v0.1.0
 	github.com/filecoin-project/go-fil-commp-hashhash v0.2.0
 	github.com/google/uuid v1.3.0
@@ -34,7 +34,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/golang-lru v0.6.0 // indirect
 	github.com/ipfs/bbloom v0.0.4 // indirect
 	github.com/ipfs/go-bitfield v1.1.0 // indirect
 	github.com/ipfs/go-block-format v0.1.2 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/ipfs/go-ipfs-posinfo v0.0.1 // indirect
 	github.com/ipfs/go-ipfs-util v0.0.2 // indirect
 	github.com/ipfs/go-ipld-legacy v0.2.1 // indirect
-	github.com/ipfs/go-libipfs v0.6.1 // indirect
+	github.com/ipfs/go-libipfs v0.7.0 // indirect
 	github.com/ipfs/go-log v1.0.5 // indirect
 	github.com/ipfs/go-metrics-interface v0.0.1 // indirect
 	github.com/ipfs/go-verifcid v0.0.2 // indirect
@@ -67,6 +67,8 @@ require (
 	github.com/quic-go/webtransport-go v0.5.3 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/txaty/go-merkletree v0.0.0-00010101000000-000000000000 // indirect
+	github.com/txaty/gool v0.1.4 // indirect
 	github.com/whyrusleeping/cbor-gen v0.0.0-20230126041949-52956bd4c9aa // indirect
 	github.com/whyrusleeping/chunker v0.0.0-20181014151217-fe64bd25879f // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
@@ -84,3 +86,5 @@ require (
 )
 
 replace github.com/ipfs/go-unixfs => github.com/dataswap/go-unixfs v0.4.7-0.20230810063948-3a5a3e6f56ec
+
+replace github.com/txaty/go-merkletree => github.com/dataswap/go-merkletree v0.1.16-0.20230811015213-32d6b6714c69

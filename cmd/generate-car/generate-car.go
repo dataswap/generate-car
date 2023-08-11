@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 
 	commcid "github.com/filecoin-project/go-fil-commcid"
-	commp "github.com/filecoin-project/go-fil-commp-hashhash"
 	"github.com/google/uuid"
 	"github.com/ipfs/go-cid"
 	cbor "github.com/ipfs/go-ipld-cbor"
@@ -160,8 +159,8 @@ func main() {
 			if err != nil {
 				return err
 			}
-			cp := new(commp.Calc)
-			writer := bufio.NewWriterSize(io.MultiWriter(carF, cp), BufSize)
+			buf := bytes.Buffer{}
+			writer := bufio.NewWriterSize(io.MultiWriter(carF, &buf), BufSize)
 
 			msrv := metaservice.New()
 			ipld, cid, cidMap, err := util.GenerateCar(ctx, input, parent, tmpDir, writer, msrv)
@@ -176,12 +175,12 @@ func main() {
 			if err != nil {
 				return err
 			}
-			rawCommP, pieceSize, err := cp.Digest()
+			rawCommP, pieceSize, err := metaservice.Digest(buf)
 			if err != nil {
 				return err
 			}
 			if pieceSizeInput > 0 {
-				rawCommP, err = commp.PadCommP(
+				rawCommP, err = metaservice.PadCommP(
 					rawCommP,
 					pieceSize,
 					pieceSizeInput,
