@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -88,6 +89,17 @@ func main() {
 				Usage:    "Parent path of the dataset",
 				Required: true,
 			},
+			&cli.IntFlag{
+				Name:    "cache-start",
+				Aliases: []string{"cs"},
+				Usage:   "Merkle-tree cache start level. range:[0, depth-1], [..-1] is off cache",
+				Value:   -1,
+			},
+			&cli.UintFlag{
+				Name:    "cache-levels",
+				Aliases: []string{"cl"},
+				Usage:   "Merkle-tree cache levels number. range:[1, depth]",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			inputFile := c.String("input")
@@ -96,6 +108,8 @@ func main() {
 			parent := c.String("parent")
 			tmpDir := c.String("tmp-dir")
 			single := c.Bool("single")
+			cacheStart := c.Int("cache-start")
+			cacheLevels := c.Uint("cache-levels")
 
 			var input Input
 			if single {
@@ -175,7 +189,8 @@ func main() {
 			if err != nil {
 				return err
 			}
-			rawCommP, pieceSize, err := metaservice.Digest(buf)
+			cachePath := path.Join(outDir, "cache")
+			rawCommP, pieceSize, err := metaservice.Digest(buf, cacheStart, cacheLevels, cachePath)
 			if err != nil {
 				return err
 			}
@@ -197,6 +212,12 @@ func main() {
 			err = os.Rename(outPath, path.Join(outDir, commCid.String()+".car"))
 			if err != nil {
 				return err
+			}
+			if cacheStart >= 0 {
+				err = os.Rename(path.Join(cachePath, hex.EncodeToString(rawCommP)+".cache"), path.Join(cachePath, commCid.String()+".cache"))
+				if err != nil {
+					return err
+				}
 			}
 
 			metaPath := path.Join(outDir, "metas")

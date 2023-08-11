@@ -3,7 +3,7 @@ module github.com/tech-greedy/generate-car
 go 1.20
 
 require (
-	github.com/dataswap/go-metadata v0.0.0-20230811030753-a306a7c8371d
+	github.com/dataswap/go-metadata v0.0.0-20230811073733-4a4094e900d9
 	github.com/filecoin-project/go-fil-commcid v0.1.0
 	github.com/filecoin-project/go-fil-commp-hashhash v0.2.0
 	github.com/google/uuid v1.3.0
