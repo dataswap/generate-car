@@ -24,7 +24,6 @@ import (
 	"github.com/ipfs/go-unixfs/importer/balanced"
 	"github.com/ipfs/go-unixfs/importer/helpers"
 	ihelper "github.com/ipfs/go-unixfs/importer/helpers"
-	uio "github.com/ipfs/go-unixfs/io"
 	"github.com/ipld/go-car"
 	ipldprime "github.com/ipld/go-ipld-prime"
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
@@ -34,6 +33,7 @@ import (
 
 	"github.com/dataswap/go-metadata/libs"
 	metaservice "github.com/dataswap/go-metadata/service"
+	pb "github.com/ipfs/go-unixfs/pb"
 )
 
 const UnixfsLinksPerLevel = 1 << 10
@@ -158,9 +158,11 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 		return
 	}
 	var layers []interface{}
-	rootNode := uio.NewDirectory(dagServ)
-	rootNode.SetCidBuilder(cidBuilder)
-	layers = append(layers, &rootNode)
+	//rootNode := uio.NewDirectory(dagServ)
+	//rootNode.SetCidBuilder(cidBuilder)
+
+	rootNode := helpers.NewFSNodeOverDag(pb.Data_Directory, cidBuilder)
+	layers = append(layers, rootNode)
 	previous := []string{""}
 	for _, item := range fileList {
 		if _, err := os.Stat(item.Path); err != nil {
@@ -204,7 +206,8 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 			item.End = item.Size
 			item.Start = 0
 		}
-		node, err = BuildFileNode(ctx, item, dagServ, cidBuilder, msrv)
+
+		node, err = BuildFileNode(ctx, item, dagServ, cidBuilder, msrv, parentPath)
 		if err != nil {
 			return
 		}
@@ -231,15 +234,16 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 			lastNode := layers[len(layers)-1]
 			lastName := previous[len(previous)-1]
 			layers = layers[:len(layers)-1]
-			dirNode, ok := layers[len(layers)-1].(*uio.Directory)
+			dirNode, ok := layers[len(layers)-1].(*helpers.FSNodeOverDag)
 			if !ok {
 				err = xerrors.Errorf("node is not directory")
 				return
 			}
-			lastDirNode, ok := lastNode.(*uio.Directory)
+			lastDirNode, ok := lastNode.(*helpers.FSNodeOverDag)
 			if ok {
 				var n ipld.Node
-				n, err = (*lastDirNode).GetNode()
+				//childFileSize := lastDirNode.FileSize()
+				n, err = (*lastDirNode).Commit()
 				if err != nil {
 					return
 				}
@@ -247,17 +251,33 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 				if err != nil {
 					return
 				}
+				var stat *ipld.NodeStat
+				stat, err = n.Stat()
+				if err != nil {
+					return
+				}
+				childFileSize := uint64(stat.BlockSize)
 				cidMap[strings.Join(previous[1:], "/")] = CidMapValue{true, n.Cid().String()}
-				err = (*dirNode).AddChild(ctx, lastName, n)
+				err = (*dirNode).AddChildToFsNode(n, childFileSize, lastName)
 				if err != nil {
 					return nil, "", nil, err
 				}
+				//fmt.Println("AddChildLink name:", lastName, " cid:", n.Cid().String(), " file size:", childFileSize, " generate-car")
 			} else {
 				lastFileNode, _ := lastNode.(ipld.Node)
-				err = (*dirNode).AddChild(ctx, lastName, lastFileNode)
+				var stat *ipld.NodeStat
+				stat, err = lastFileNode.Stat()
+				if err != nil {
+					return
+				}
+				childFileSize := uint64(stat.BlockSize)
+
+				//err = (*dirNode).AddChild(ctx, lastName, lastFileNode)
+				err = (*dirNode).AddChildToFsNode(lastFileNode, childFileSize, lastName)
 				if err != nil {
 					return nil, "", nil, err
 				}
+				//fmt.Println("AddChildLink name:", lastName, " cid:", lastFileNode.Cid().String(), " file size:", childFileSize, " generate-car")
 			}
 			previous = previous[:len(previous)-1]
 		}
@@ -265,9 +285,10 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 			if j == len(current)-1 {
 				layers = append(layers, node)
 			} else {
-				newNode := uio.NewDirectory(dagServ)
-				newNode.SetCidBuilder(cidBuilder)
-				layers = append(layers, &newNode)
+				//newNode := uio.NewDirectory(dagServ)
+				newNode := helpers.NewFSNodeOverDag(pb.Data_Directory, cidBuilder)
+				//newNode.SetCidBuilder(cidBuilder)
+				layers = append(layers, newNode)
 			}
 		}
 		previous = current
@@ -276,15 +297,17 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 		lastNode := layers[len(layers)-1]
 		lastName := previous[len(previous)-1]
 		layers = layers[:len(layers)-1]
-		dirNode, ok := layers[len(layers)-1].(*uio.Directory)
+		//dirNode, ok := layers[len(layers)-1].(*uio.Directory)
+		dirNode, ok := layers[len(layers)-1].(*helpers.FSNodeOverDag)
 		if !ok {
 			err = xerrors.Errorf("node is not directory")
 			return
 		}
-		lastDirNode, ok := lastNode.(*uio.Directory)
+		lastDirNode, ok := lastNode.(*helpers.FSNodeOverDag)
 		if ok {
 			var n ipld.Node
-			n, err = (*lastDirNode).GetNode()
+			//childFileSize := lastDirNode.FileSize()
+			n, err = (*lastDirNode).Commit()
 			if err != nil {
 				return
 			}
@@ -292,21 +315,39 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 			if err != nil {
 				return
 			}
-			cidMap[strings.Join(previous[1:], "/")] = CidMapValue{true, n.Cid().String()}
-			err = (*dirNode).AddChild(ctx, lastName, n)
+			var stat *ipld.NodeStat
+			stat, err = n.Stat()
 			if err != nil {
 				return
 			}
+			childFileSize := uint64(stat.BlockSize)
+
+			cidMap[strings.Join(previous[1:], "/")] = CidMapValue{true, n.Cid().String()}
+			err = (*dirNode).AddChildToFsNode(n, childFileSize, lastName)
+			if err != nil {
+				return
+			}
+			//fmt.Println("AddChildLink name:", lastName, " cid:", n.Cid().String(), " file size:", childFileSize, " generate-car")
 		} else {
 			lastFileNode, _ := lastNode.(ipld.Node)
-			err = (*dirNode).AddChild(ctx, lastName, lastFileNode)
+			var stat *ipld.NodeStat
+			stat, err = lastFileNode.Stat()
 			if err != nil {
 				return
 			}
+			childFileSize := uint64(stat.BlockSize)
+
+			//err = (*dirNode).AddChild(ctx, lastName, lastFileNode)
+			err = (*dirNode).AddChildToFsNode(lastFileNode, childFileSize, lastName)
+			if err != nil {
+				return
+			}
+			//fmt.Println("AddChildLink name:", lastName, " cid:", lastFileNode.Cid().String(), " file size:", childFileSize, " generate-car")
 		}
 		previous = previous[:len(previous)-1]
 	}
-	rootIpldNode, _ := rootNode.GetNode()
+	//rootIpldNode, _ := rootNode.GetNode()
+	rootIpldNode, _ := rootNode.Commit()
 	err = dagServ.Add(ctx, rootIpldNode)
 	if err != nil {
 		return
@@ -341,7 +382,8 @@ func allSelector() ipldprime.Node {
 		ssb.ExploreAll(ssb.ExploreRecursiveEdge())).
 		Node()
 }
-func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBuilder cid.Builder, msrv *metaservice.MetaService) (node ipld.Node, err error) {
+
+func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBuilder cid.Builder, msrv *metaservice.MetaService, parent string) (node ipld.Node, err error) {
 	f, err := os.Open(item.Path)
 	if err != nil {
 		logger.Warn(err)
@@ -365,13 +407,17 @@ func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBu
 
 	params := ihelper.DagBuilderParams{
 		Maxlinks:   UnixfsLinksPerLevel,
-		RawLeaves:  true,
+		RawLeaves:  false,
 		CidBuilder: cidBuilder,
 		Dagserv:    bufDs,
 		NoCopy:     true,
 	}
 	var db helpers.Helper
-	spl := libs.NewSplitter(r, int64(UnixfsChunkSize), item.Path)
+	var spl libs.EnhancedSplitter
+	spl, err = libs.NewSplitter(r, int64(UnixfsChunkSize), item.Path, parent)
+	if err != nil {
+		return
+	}
 	if msrv != nil {
 		db, err = msrv.GenHelper(&params, spl)
 	} else {
