@@ -93,7 +93,7 @@ func main() {
 				Name:    "cache-start",
 				Aliases: []string{"cs"},
 				Usage:   "Merkle-tree cache start level. range:[0, depth-1], [..-1] is off cache",
-				Value:   -1,
+				Value:   16,
 			},
 			&cli.UintFlag{
 				Name:    "cache-levels",
