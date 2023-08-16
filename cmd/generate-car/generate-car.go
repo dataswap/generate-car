@@ -190,10 +190,12 @@ func main() {
 				return err
 			}
 			cachePath := path.Join(outDir, "cache")
-			rawCommP, pieceSize, err := metaservice.Digest(buf, cacheStart, cacheLevels, cachePath)
+			rawCommP, pieceSize, err := metaservice.GenCommP(buf, cacheStart, cacheLevels, cachePath)
 			if err != nil {
 				return err
 			}
+
+			metaservice.SaveCommP(rawCommP, cachePath)
 			if pieceSizeInput > 0 {
 				rawCommP, err = metaservice.PadCommP(
 					rawCommP,
