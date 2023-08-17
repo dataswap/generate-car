@@ -195,7 +195,7 @@ func main() {
 				return err
 			}
 
-			metaservice.SaveCommP(rawCommP, cachePath)
+			metaservice.SaveCommP(rawCommP, path.Join(cachePath, "..", ".."))
 			if pieceSizeInput > 0 {
 				rawCommP, err = metaservice.PadCommP(
 					rawCommP,
