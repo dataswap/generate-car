@@ -189,7 +189,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			cachePath := path.Join(outDir, "cache")
+			cachePath := path.Join(outDir, "metas", "proofs")
 			rawCommP, pieceSize, err := metaservice.GenCommP(buf, cacheStart, cacheLevels, cachePath)
 			if err != nil {
 				return err
@@ -222,7 +222,7 @@ func main() {
 				}
 			}
 
-			metaPath := path.Join(outDir, "metas")
+			metaPath := path.Join(outDir, "metas", "mappings")
 			msrv.SaveMeta(metaPath, commCid.String()+".json")
 
 			output, err := json.Marshal(Result{
