@@ -167,8 +167,8 @@ github.com/data-preservation-programs/singularity v0.2.47 h1:+CFPRD2vlpChAsNhB/k
 github.com/data-preservation-programs/singularity v0.2.47/go.mod h1:HolAy/3ZHtUVwyGK82tVc/y72BMKcTUUtg6yEvk357A=
 github.com/dataswap/go-merkletree v0.1.16-0.20230815040153-1fec7617de00 h1:cmJAumsUXggyhUizXIYal24S2/gfzUK6gWE+q2ILea0=
 github.com/dataswap/go-merkletree v0.1.16-0.20230815040153-1fec7617de00/go.mod h1:xI/PBnKYi1a8cF2HlHlMpXArlywnXvpQwqhaIh9aLOU=
-github.com/dataswap/go-metadata v0.0.0-20230818070335-4050b833aec0 h1:vWsZlAg+e/QzGD9j3ExlFBmBWb4COLExHDwoEn1gqmU=
-github.com/dataswap/go-metadata v0.0.0-20230818070335-4050b833aec0/go.mod h1:xx6sg9eqWFKyeuzs/E+O+SJB2wO1qj/VRcfAUfQvzO8=
+github.com/dataswap/go-metadata v0.0.0-20230818073416-2a14cd61ee3e h1:KNlOVGVsK/+07PXQOOCA2Hpab3FDS23fhPkFkjuH2kk=
+github.com/dataswap/go-metadata v0.0.0-20230818073416-2a14cd61ee3e/go.mod h1:xx6sg9eqWFKyeuzs/E+O+SJB2wO1qj/VRcfAUfQvzO8=
 github.com/dataswap/go-unixfs v0.4.7-0.20230816102825-8616cfcb522d h1:jN1ogPIkDirAbt/cIcrTjqbbZ3nFeFztH+ogoD6WhBM=
 github.com/dataswap/go-unixfs v0.4.7-0.20230816102825-8616cfcb522d/go.mod h1:BIznJNvt/gEx/ooRMI4Us9K8+qeGO7vx1ohnbk8gjFg=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
