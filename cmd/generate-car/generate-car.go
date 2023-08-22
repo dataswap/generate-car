@@ -89,17 +89,6 @@ func main() {
 				Usage:    "Parent path of the dataset",
 				Required: true,
 			},
-			&cli.IntFlag{
-				Name:    "cache-start",
-				Aliases: []string{"cs"},
-				Usage:   "Merkle-tree cache start level. range:[0, depth-1], [..-1] is off cache",
-				Value:   16,
-			},
-			&cli.UintFlag{
-				Name:    "cache-levels",
-				Aliases: []string{"cl"},
-				Usage:   "Merkle-tree cache levels number. range:[1, depth]",
-			},
 		},
 		Action: func(c *cli.Context) error {
 			inputFile := c.String("input")
@@ -108,8 +97,6 @@ func main() {
 			parent := c.String("parent")
 			tmpDir := c.String("tmp-dir")
 			single := c.Bool("single")
-			cacheStart := c.Int("cache-start")
-			cacheLevels := c.Uint("cache-levels")
 
 			var input Input
 			if single {
@@ -190,7 +177,7 @@ func main() {
 				return err
 			}
 			cachePath := path.Join(outDir, metaservice.METAS_PATH, metaservice.PROOFS_PATH)
-			rawCommP, pieceSize, err := metaservice.GenCommP(buf, cacheStart, cacheLevels, cachePath)
+			rawCommP, pieceSize, err := metaservice.GenCommP(buf, cachePath)
 			if err != nil {
 				return err
 			}
@@ -215,11 +202,10 @@ func main() {
 			if err != nil {
 				return err
 			}
-			if cacheStart >= 0 {
-				err = os.Rename(path.Join(cachePath, hex.EncodeToString(rawCommP)+metaservice.CACHE_SUFFIX), path.Join(cachePath, commCid.String()+metaservice.CACHE_SUFFIX))
-				if err != nil {
-					return err
-				}
+
+			err = os.Rename(path.Join(cachePath, hex.EncodeToString(rawCommP)+metaservice.CACHE_SUFFIX), path.Join(cachePath, commCid.String()+metaservice.CACHE_SUFFIX))
+			if err != nil {
+				return err
 			}
 
 			metaPath := path.Join(outDir, metaservice.METAS_PATH, metaservice.MAPPINGS_PATH)
