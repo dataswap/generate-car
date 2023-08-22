@@ -130,7 +130,7 @@ func (fs *fileSlice) Read(p []byte) (n int, err error) {
 	return copy(p, b), io.EOF
 }
 
-func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDir string, output io.Writer, msrv *metaservice.MetaService) (ipldDag *FsNode, cid string, cidMap map[string]CidMapValue, err error) {
+func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDir string, output io.Writer, msrv *metaservice.MappingService) (ipldDag *FsNode, cid string, cidMap map[string]CidMapValue, err error) {
 	batching := dss.MutexWrap(datastore.NewMapDatastore())
 	bs1 := bstore.NewBlockstore(batching)
 	absParentPath, err := filepath.Abs(parentPath)
@@ -151,7 +151,7 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 	bs2 := filestore.NewFilestore(bs1, fm)
 
 	dagServ1 := merkledag.NewDAGService(blockservice.New(bs2, offline.Exchange(bs2)))
-	dagServ := msrv.GenDagService(dagServ1)
+	dagServ := msrv.GenerateDagService(dagServ1)
 	cidBuilder, err := merkledag.PrefixForCidVersion(1)
 	if err != nil {
 		logger.Warn(err)
@@ -356,7 +356,7 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 	selector := allSelector()
 	sc := car.NewSelectiveCar(ctx, bs2, []car.Dag{{Root: rootIpldNode.Cid(), Selector: selector}})
 	err = sc.Write(
-		msrv.GenCarWriter(output, "", true),
+		msrv.GenerateCarWriter(output, "", true),
 	)
 	if err != nil {
 		return
@@ -372,7 +372,7 @@ func GenerateCar(ctx context.Context, fileList []Finfo, parentPath string, tmpDi
 		return
 	}
 	cid = rootIpldNode.Cid().String()
-	msrv.SetCarRoot(rootIpldNode.Cid())
+	msrv.SetCarDataRoot(rootIpldNode.Cid())
 	return
 }
 
@@ -383,7 +383,7 @@ func allSelector() ipldprime.Node {
 		Node()
 }
 
-func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBuilder cid.Builder, msrv *metaservice.MetaService, parent string) (node ipld.Node, err error) {
+func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBuilder cid.Builder, msrv *metaservice.MappingService, parent string) (node ipld.Node, err error) {
 	f, err := os.Open(item.Path)
 	if err != nil {
 		logger.Warn(err)
@@ -419,7 +419,7 @@ func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBu
 		return
 	}
 	if msrv != nil {
-		db, err = msrv.GenHelper(&params, spl)
+		db, err = msrv.GenerateHelper(&params, spl)
 	} else {
 		db, err = params.New(spl)
 	}

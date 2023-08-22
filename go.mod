@@ -3,7 +3,7 @@ module github.com/tech-greedy/generate-car
 go 1.20
 
 require (
-	github.com/dataswap/go-metadata v0.0.0-20230818073416-2a14cd61ee3e
+	github.com/dataswap/go-metadata v0.0.0-20230821140029-022d29baebd9
 	github.com/filecoin-project/go-fil-commcid v0.1.0
 	github.com/filecoin-project/go-fil-commp-hashhash v0.2.0
 	github.com/google/uuid v1.3.0
@@ -190,6 +190,6 @@ require (
 	storj.io/uplink v1.10.0 // indirect
 )
 
-replace github.com/ipfs/go-unixfs => github.com/dataswap/go-unixfs v0.4.7-0.20230816102825-8616cfcb522d
+replace github.com/ipfs/go-unixfs => github.com/dataswap/go-unixfs v0.4.8-0.20230821121547-dd2cd70ed7f5
 
 replace github.com/txaty/go-merkletree => github.com/dataswap/go-merkletree v0.1.16-0.20230815040153-1fec7617de00

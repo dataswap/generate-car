@@ -189,7 +189,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			cachePath := path.Join(outDir, "metas", "proofs")
+			cachePath := path.Join(outDir, metaservice.METAS_PATH, metaservice.PROOFS_PATH)
 			rawCommP, pieceSize, err := metaservice.GenCommP(buf, cacheStart, cacheLevels, cachePath)
 			if err != nil {
 				return err
@@ -216,14 +216,14 @@ func main() {
 				return err
 			}
 			if cacheStart >= 0 {
-				err = os.Rename(path.Join(cachePath, hex.EncodeToString(rawCommP)+".cache"), path.Join(cachePath, commCid.String()+".cache"))
+				err = os.Rename(path.Join(cachePath, hex.EncodeToString(rawCommP)+metaservice.CACHE_SUFFIX), path.Join(cachePath, commCid.String()+metaservice.CACHE_SUFFIX))
 				if err != nil {
 					return err
 				}
 			}
 
-			metaPath := path.Join(outDir, "metas", "mappings")
-			msrv.SaveMeta(metaPath, commCid.String()+".json")
+			metaPath := path.Join(outDir, metaservice.METAS_PATH, metaservice.MAPPINGS_PATH)
+			msrv.SaveMetaMappings(metaPath, commCid.String()+metaservice.MAPPING_FILE_SUFFIX)
 
 			output, err := json.Marshal(Result{
 				Ipld:      ipld,
