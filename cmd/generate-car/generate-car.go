@@ -181,19 +181,8 @@ func main() {
 			if err != nil {
 				return err
 			}
-			fmt.Println("pieceSize:", pieceSize, "pieceSizeInput:", pieceSizeInput)
+
 			metaservice.SaveCommP(rawCommP, uint64(buf.Len()), cachePath)
-			// if pieceSizeInput > 0 {
-			// 	rawCommP, err = metaservice.PadCommP(
-			// 		rawCommP,
-			// 		pieceSize,
-			// 		pieceSizeInput,
-			// 	)
-			// 	if err != nil {
-			// 		return err
-			// 	}
-			// 	pieceSize = pieceSizeInput
-			// }
 			commCid, err := commcid.DataCommitmentV1ToCID(rawCommP)
 			if err != nil {
 				return err
