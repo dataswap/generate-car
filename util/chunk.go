@@ -414,7 +414,7 @@ func BuildFileNode(ctx context.Context, item Finfo, bufDs ipld.DAGService, cidBu
 	}
 	var db helpers.Helper
 	var spl libs.EnhancedSplitter
-	spl, err = libs.NewSplitter(r, int64(UnixfsChunkSize), item.Path, parent)
+	spl, err = libs.NewSplitter(r, int64(UnixfsChunkSize), item.Path, parent, uint64(item.Start))
 	if err != nil {
 		return
 	}
